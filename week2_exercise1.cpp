@@ -28,7 +28,10 @@ char numberToLetter(char i){
 
 int main(void)
 {
-    //CODE GOES HERE 
-
+    for(int i = 0; inputString[i] != '\0'; i++){
+        char shifted_char = numberToLetter((letterToNumber(inputString[i]) + offset) % BUFFER_SIZE);
+        putc(shifted_char);
+    }
     putc('\n');
+    return 0;
 }
