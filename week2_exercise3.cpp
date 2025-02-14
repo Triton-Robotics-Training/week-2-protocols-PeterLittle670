@@ -52,37 +52,47 @@ public:
 //TOUCH NOTHING ABOVE THIS
 
 int main() {
-    srand(2); //MODIFY THIS TO CHANGE THE READ PACKET TEST CASE
-    CAN canbus; //usually this has parameters, but since this isn't real and we're running this on a standard compiler, it doesn't
-    
-    int16_t angle = 0;
-    int16_t velocity = 0;
-    int16_t torque = 0;
-    int8_t temperature = 0; 
-    //test cases: angle, velocity, torque, temperature
-    //test case 1: 1300, 2140, 382, 10
-    //test case 2: 8000, -5000, -800, 90
-    //test case 3: 8000, 400, -10000, 200
-    
-    
-    //TODO: ENCODE THE DATA TO SEND TO THE MOTOR
-    uint8_t data_send[8] = {0,0,0,0,0,0,0,0};
+    srand(2);
+    CAN canbus;
+
+    int16_t angle = 1750;
+    int16_t velocity = 2000;
+    int16_t torque = 400;
+    int8_t temperature = 20;
+
+    uint8_t data_send[8] = {0};
     short len_send = 8;
     short id_send = 0x1FF;
-    
-    uint8_t data_recv[8] = {0,0,0,0,0,0,0,0};
+
+    // Encoding the data
+    data_send[0] = (angle >> 8) & 0xFF;
+    data_send[1] = angle & 0xFF;
+    data_send[2] = (velocity >> 8) & 0xFF;
+    data_send[3] = velocity & 0xFF;
+    data_send[4] = (torque >> 8) & 0xFF;
+    data_send[5] = torque & 0xFF;
+    data_send[6] = temperature;
+    data_send[7] = 0x00;
+
+    canbus.sendPacket(id_send, data_send, len_send);
+
+    uint8_t data_recv[8] = {0};
     short len_recv;
     short id_recv;
-    //in practice, we can often reuse the sending and receiving data, but for now we'll keep them separate. In real scenarios, we often don't need to keep hold of the packet we just sent, and if we do, we possess the data that we used to construct it.
-    
-    //We pass in the packet via its adress (its an array), and then it is sent through the can bus
-    canbus.sendPacket(id_send, data_send, len_send);
-    
-    //We pass in an array (data_recv) and it is filled in the can read function, as well as the id we recieve from and the length of the packet.
+
     canbus.readPacket(&id_recv, data_recv, &len_recv);
+
+    // Decoding the received data
+    int16_t decoded_angle = (data_recv[0] << 8) | data_recv[1];
+    int16_t decoded_velocity = (int16_t)((data_recv[2] << 8) | data_recv[3]);
+    int16_t decoded_torque = (int16_t)((data_recv[4] << 8) | data_recv[5]);
+    int8_t decoded_temperature = data_recv[6];
+
+    printf("Decoded Values:\n");
+    printf("Angle: %d\n", decoded_angle);
+    printf("Velocity: %d\n", decoded_velocity);
+    printf("Torque: %d\n", decoded_torque);
+    printf("Temperature: %d\n", decoded_temperature);
     
-    //TODO: DECODE THE DATA RECIEVED BY THE MOTOR, YOU SHOULD GET DIFFERENT DATA DEPENDING ON SRAND
-    // srand(0): 1383, -5114, 27, 85
-    // srand(2): 6138, 6719, 38, 65
-    // srand(4): 7645, 4083, 124, 86
+    return 0;
 }
