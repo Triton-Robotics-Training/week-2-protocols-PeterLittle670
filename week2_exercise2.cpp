@@ -41,10 +41,19 @@ void putc_bin(char c){
     }
     
 }
+unsigned char decrypt(char byte){
+    unsigned char result = 0;
+    result |= (byte & 0b11100000) >> 5;
+    result |= (byte & 0b00010000) << 1;
+    result |= (byte & 0b00001000) << 1;
+    result |= (byte & 0b00000110) << 5;
+    result |= (byte & 0b00000001) << 3;
+    return result ^ 0b11010000;
+}
 
 int main(void)
 {
-    //CODE GOES HERE 
-
-    putc('\n');
+    for(int i = 0; inputString[0] != '\0'; i++){
+        putc(decrypt(inputString[i]));
+    }
 }
